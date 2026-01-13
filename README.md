@@ -26,7 +26,7 @@ A Claude Code plugin for handling PR bot comments (CodeRabbit, Greptile, Copilot
 
 - [GitHub CLI](https://cli.github.com/) (`gh`) — authenticated
 - [jq](https://jqlang.github.io/jq/) — version 1.6+
-- bash 4.0+
+- Bash 4.0+
 
 ## Installation
 
@@ -60,8 +60,7 @@ Gate 6: Push      → Push to remote, check for new comments
 Progress is tracked in `.claude/bot-reviews/PR-{number}.md`:
 
 ```
-initialized → collected → validated → fixes_planned
-→ fixes_applied → checks_passed → committed → replies_sent → pushed
+initialized → collected → validated → fixes_planned → fixes_applied → checks_passed → committed → replies_sent → pushed
 ```
 
 ## License
