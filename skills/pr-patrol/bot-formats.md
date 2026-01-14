@@ -45,6 +45,24 @@ These bots are **automatically excluded** from pr-patrol processing:
 
 ## CodeRabbit (`coderabbitai[bot]`)
 
+### Embedded Comments (Walkthrough Sections)
+
+**IMPORTANT:** Due to GitHub API limitations, CodeRabbit embeds some comments in the walkthrough issue comment instead of posting inline:
+
+| Section | Emoji | Description | Default Severity |
+|---------|-------|-------------|------------------|
+| Duplicate comments | `♻️` | Issues from previous reviews that still apply | HIGH |
+| Additional comments | `🔇` | Comments outside the diff range | MEDIUM |
+| Nitpick comments | `🧹` | Minor style suggestions (sometimes embedded) | LOW |
+| Review details | `📜` | Collapsible full review metadata | N/A |
+
+**Why embedded?**
+- GitHub API cannot post inline comments on lines outside the PR diff
+- Duplicates from previous reviews may reference unchanged code
+- Nitpicks may be bundled to reduce noise
+
+**Parsing:** Use `parse_coderabbit_embedded.sh` to extract these into regular comment format.
+
 ### Severity Markers
 
 | Severity | Markers in Comment |
@@ -166,6 +184,32 @@ Greptile uses machine learning trained on 👍/👎 reactions:
 - **Before feedback:** ~19% of comments addressed
 - **After feedback:** ~55%+ of comments addressed
 - Your reactions directly improve future reviews
+
+### Consolidated Summary Comment
+
+**IMPORTANT:** At the end of each cycle, post ONE consolidated `@greptile-apps` summary comment.
+
+**Why?**
+- Helps Greptile learn from batch feedback
+- Tracks which suggestions were valuable vs false positives
+- Improves future code review quality
+
+**Format:** Use `build_greptile_summary.sh` to generate the summary.
+
+```markdown
+@greptile-apps
+
+## PR #123 - Cycle 1 Summary
+
+### ✅ Fixed Issues (5)
+- `file1.ts`: Description of fix
+
+### ❌ False Positives (2)
+- `file2.ts`: Reason this was intentional
+
+---
+**Commit:** `abc1234`
+```
 
 ### Greptile's Acknowledgment Behavior
 

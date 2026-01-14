@@ -153,6 +153,60 @@ When you @mention Greptile with a fix confirmation:
 
 ---
 
+## Greptile Consolidated Summary Comment
+
+**IMPORTANT:** At the end of each cycle, post ONE consolidated summary comment with `@greptile-apps` mention.
+
+This helps Greptile:
+- Learn from batch feedback (improves future reviews)
+- Understand which suggestions were valuable vs false positives
+- Track patterns across the PR lifecycle
+
+### Generate Summary
+
+```bash
+# Build the consolidated summary
+CYCLE=$(grep "^current_cycle:" "$STATE_FILE" | cut -d' ' -f2)
+"$SCRIPTS/build_greptile_summary.sh" "$STATE_FILE" "$CYCLE" > /tmp/greptile_summary.md
+
+# Preview
+cat /tmp/greptile_summary.md
+```
+
+### Post Summary (After Individual Replies)
+
+```bash
+# Post consolidated summary as issue comment
+gh api repos/{o}/{r}/issues/{pr}/comments \
+  -X POST \
+  -f body="$(cat /tmp/greptile_summary.md)"
+```
+
+### Summary Format
+
+```markdown
+@greptile-apps
+
+## PR #123 - Cycle 1 Summary
+
+Thank you for the code review! Here's a summary of how we addressed the feedback:
+
+### ✅ Fixed Issues (5)
+- `customer-list.tsx`: Fixed UUID vs text code mismatch
+- `revenue-table.tsx`: Added null check for optional field
+- ...
+
+### ❌ False Positives (2)
+- `utils.ts`: Intentional any cast — _external API type unknown_
+- `config.ts`: Hardcoded value is build-time constant — _OK for this use case_
+
+---
+**Commit:** `ff83040`
+**Cycle:** 1
+```
+
+---
+
 ## Reply Execution Order
 
 For each comment (excluding Copilot):
