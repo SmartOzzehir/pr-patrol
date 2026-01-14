@@ -14,8 +14,8 @@
     },
     {
       "name": "spec-interview",
-      "description": "Interview users to gather detailed requirements for spec documents or feature ideas",
-      "version": "1.0.0",
+      "description": "Comprehensive 8-stage requirements interview with adaptive technical depth and PRD generation",
+      "version": "2.0.0",
       "source": "./spec-interview"
     }
   ]

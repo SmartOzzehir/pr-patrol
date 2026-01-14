@@ -1,7 +1,7 @@
 {
   "name": "spec-interview",
-  "version": "1.0.0",
-  "description": "Interview users to gather detailed requirements for spec documents or feature ideas",
+  "version": "2.0.0",
+  "description": "Comprehensive 8-stage requirements interview with adaptive technical depth and PRD generation",
   "repository": "https://github.com/SmartOzzehir/smart-plugins",
   "license": "MIT",
   "keywords": ["requirements", "spec", "interview", "planning", "documentation"]
