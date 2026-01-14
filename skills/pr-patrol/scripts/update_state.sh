@@ -26,8 +26,9 @@ fi
 
 # Escape special characters for sed replacement
 # This prevents injection attacks from malicious field/value content
+# Note: We use | as delimiter, so it must also be escaped
 escape_sed() {
-  printf '%s\n' "$1" | sed 's/[&/\]/\\&/g'
+  printf '%s\n' "$1" | sed 's/[&/\|]/\\&/g'
 }
 
 ESCAPED_FIELD=$(escape_sed "$FIELD")

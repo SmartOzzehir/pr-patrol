@@ -26,9 +26,12 @@ fi
 # Read stdin into variable to validate before processing
 INPUT=$(cat)
 
-# Validate input is valid JSON
-if ! echo "$INPUT" | jq empty 2>/dev/null; then
-  echo "Error: Invalid JSON input" >&2
+# Validate input is valid JSON (capture jq errors for better diagnostics)
+JQ_STDERR=$(mktemp)
+trap 'rm -f "$JQ_STDERR"' EXIT
+
+if ! echo "$INPUT" | jq empty 2>"$JQ_STDERR"; then
+  echo "Error: Invalid JSON input: $(cat "$JQ_STDERR")" >&2
   exit 1
 fi
 

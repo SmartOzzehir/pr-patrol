@@ -31,11 +31,13 @@ fi
 # GitHub API returns timestamps in UTC (Z suffix)
 # But local timestamps may have timezone offset (+03:00)
 # String comparison fails: "11:30Z" vs "14:22+03:00" → 11 < 14 (WRONG!)
-if ! SINCE_NORMALIZED=$(date -u -d "$SINCE" +"%Y-%m-%dT%H:%M:%SZ" 2>&1); then
-  echo "Warning: Could not normalize timestamp '$SINCE', using as-is" >&2
-  SINCE_NORMALIZED="$SINCE"
+DATE_STDERR=$(mktemp)
+if SINCE_NORMALIZED=$(date -u -d "$SINCE" +"%Y-%m-%dT%H:%M:%SZ" 2>"$DATE_STDERR"); then
+  SINCE="$SINCE_NORMALIZED"
+else
+  echo "Warning: Could not normalize timestamp '$SINCE' ($(cat "$DATE_STDERR")), using as-is" >&2
 fi
-SINCE="$SINCE_NORMALIZED"
+rm -f "$DATE_STDERR"
 
 # Temporary file for error capture
 STDERR_FILE=$(mktemp)

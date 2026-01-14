@@ -86,7 +86,7 @@ fi
 # Check that the temp file has at least as many lines as original (sanity check)
 ORIG_LINES=$(wc -l < "$STATE_FILE")
 NEW_LINES=$(wc -l < "$TMP_FILE")
-if [[ "$NEW_LINES" -lt "$((ORIG_LINES / 2))" ]]; then
+if [[ $NEW_LINES -lt $((ORIG_LINES / 2)) ]]; then
   echo "Error: awk output suspiciously small ($NEW_LINES lines vs $ORIG_LINES), aborting" >&2
   exit 1
 fi
