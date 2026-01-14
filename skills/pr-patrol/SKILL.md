@@ -162,14 +162,33 @@ SKILL_ROOT="${CLAUDE_PLUGIN_ROOT}/skills/pr-patrol"
 
 ## jq Escaping Warning
 
-**Never use `!=` inline** - it gets escaped to `\!=` and crashes jq.
+**CRITICAL: Shell escaping corrupts jq operators.** This affects:
+- Direct `jq` commands
+- `gh api --jq` flag
+- Any inline jq in bash
+
+### Forbidden Patterns
 
 ```bash
-# ❌ WRONG
+# ❌ WRONG - "!=" gets escaped to "\!=" → "unexpected token" error
 jq '[.[] | select(.field != null)]'
+gh api ... --jq '[.[] | select(.in_reply_to_id != null)]'
 
-# ✅ CORRECT
-jq '[.[] | select(.field)]'  # truthy check
+# ❌ WRONG - Same issue with "not null"
+jq 'select(.x != "value")'
 ```
 
-**Always use scripts** for complex jq operations.
+### Safe Alternatives
+
+```bash
+# ✅ CORRECT - Use truthy check (implicit null filter)
+jq '[.[] | select(.field)]'
+
+# ✅ CORRECT - Use "| not" for negation
+jq '[.[] | select(.bot == "Copilot" | not)]'
+
+# ✅ CORRECT - Use external .jq file for complex queries
+jq -f "$SCRIPT_DIR/filter.jq"
+```
+
+**Rule:** For any jq with `!=` or complex logic, use the scripts in `scripts/` instead of inline jq.

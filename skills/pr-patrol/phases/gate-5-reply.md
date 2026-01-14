@@ -137,7 +137,8 @@ gh api repos/{o}/{r}/pulls/{pr}/comments -X POST \
 **Before building reply queue:**
 ```bash
 # Filter out Copilot from reply queue
-REPLY_QUEUE=$(echo "$COMMENTS" | jq '[.[] | select(.bot != "Copilot")]')
+# NOTE: Avoid using != inline - use negation with "not" instead
+REPLY_QUEUE=$(echo "$COMMENTS" | jq '[.[] | select(.bot == "Copilot" | not)]')
 ```
 
 ---

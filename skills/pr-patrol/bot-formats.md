@@ -324,14 +324,32 @@ Same as Greptile: **Reaction first, then reply**
 
 ## API Endpoints Reference
 
+### ⚠️ CRITICAL: URL Structure Differs by Operation
+
+GitHub's API has **different URL structures** for listing vs. single-item operations:
+
+| Operation | URL Pattern | Note |
+|-----------|-------------|------|
+| List all | `/pulls/{pr}/comments` | Includes `{pr}` number |
+| Single item | `/pulls/comments/{id}` | NO `{pr}` - direct to comment |
+| Reactions | `/pulls/comments/{id}/reactions` | NO `{pr}` - direct to comment |
+
+**Common mistake:** Using `/pulls/{pr}/comments/{id}` → Returns 404!
+
 ### Fetch Comments
 
 ```bash
-# Review comments (line-level) - MUST paginate
+# ALL review comments (line-level) - MUST paginate
 gh api repos/{o}/{r}/pulls/{pr}/comments --paginate
 
-# Issue comments (PR summaries) - Also paginate
+# ALL issue comments (PR summaries) - Also paginate
 gh api repos/{o}/{r}/issues/{pr}/comments --paginate
+
+# SINGLE review comment by ID (note: NO {pr} in URL!)
+gh api repos/{o}/{r}/pulls/comments/{comment_id}
+
+# SINGLE issue comment by ID (note: NO {pr} in URL!)
+gh api repos/{o}/{r}/issues/comments/{comment_id}
 ```
 
 ### Post Reply
