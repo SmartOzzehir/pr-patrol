@@ -13,11 +13,15 @@ OWNER="${1:?Usage: $0 <owner> <repo> <pr>}"
 REPO="${2:?Usage: $0 <owner> <repo> <pr>}"
 PR="${3:?Usage: $0 <owner> <repo> <pr>}"
 
-# Fetch all comments
+# Get script directory for jq library path
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Sequential fetch from both endpoints
+# IMPORTANT: Do NOT use parallel { cmd & cmd & wait } pattern here!
+# Background processes can interleave stdout bytes, corrupting JSON.
 {
-  gh api "repos/$OWNER/$REPO/pulls/$PR/comments" --paginate &
-  gh api "repos/$OWNER/$REPO/issues/$PR/comments" --paginate &
-  wait
+  gh api "repos/$OWNER/$REPO/pulls/$PR/comments" --paginate
+  gh api "repos/$OWNER/$REPO/issues/$PR/comments" --paginate
 } 2>/dev/null | jq -s -L "$SCRIPT_DIR" '
 include "bot-detection";
 

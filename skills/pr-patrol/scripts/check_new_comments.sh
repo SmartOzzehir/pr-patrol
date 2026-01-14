@@ -30,11 +30,12 @@ fi
 # String comparison fails: "11:30Z" vs "14:22+03:00" → 11 < 14 (WRONG!)
 SINCE=$(date -u -d "$SINCE" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "$SINCE")
 
-# Fetch and filter comments
+# Sequential fetch from both endpoints
+# IMPORTANT: Do NOT use parallel { cmd & cmd & wait } pattern here!
+# Background processes can interleave stdout bytes, corrupting JSON.
 {
-  gh api "repos/$OWNER/$REPO/pulls/$PR/comments" --paginate &
-  gh api "repos/$OWNER/$REPO/issues/$PR/comments" --paginate &
-  wait
+  gh api "repos/$OWNER/$REPO/pulls/$PR/comments" --paginate
+  gh api "repos/$OWNER/$REPO/issues/$PR/comments" --paginate
 } 2>/dev/null | jq -s -L "$SCRIPT_DIR" --arg since "$SINCE" '
 include "bot-detection";
 
