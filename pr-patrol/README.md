@@ -1,29 +1,39 @@
 # PR Patrol
 
-Handle PR bot comments (CodeRabbit, Greptile, Copilot, Codex, Sentry) with batch validation and a 7-gate workflow.
+Handles PR review bot comments through a structured workflow. Collects comments from CodeRabbit, Greptile, Copilot, Codex, and Sentry — validates them, applies fixes, and posts appropriate replies.
 
-## Features
+## How It Works
 
-- **Batch Validation** — Validate multiple bot comments in parallel
-- **7-Gate Workflow** — Structured process with user approval at each step
-- **State Persistence** — Track progress across review cycles
-- **Bot-Specific Protocols** — Correct reply format per bot
+```
+/pr-patrol 123
+```
+
+1. **Collect** — Fetches all bot comments from the PR
+2. **Validate** — Checks each comment against the actual code (parallel processing)
+3. **Fix** — Designs and applies fixes for valid issues
+4. **Commit** — Creates a commit with all changes
+5. **Reply** — Posts replies to each bot in their expected format
+6. **Push** — Pushes changes and checks for new comments
+
+Each step requires your approval before proceeding.
 
 ## Supported Bots
 
-| Bot | Reply | Reaction |
-|-----|-------|----------|
-| CodeRabbit | ✅ | ❌ |
-| Greptile | ✅ | ✅ |
-| Copilot | ❌ | ❌ |
-| Codex | ✅ | ✅ |
-| Sentry | ✅ | ✅ |
+| Bot | How It's Handled |
+|-----|------------------|
+| CodeRabbit | Reply to resolve |
+| Greptile | React 👍 then reply |
+| Copilot | Silent fix (no reply needed) |
+| Codex | React then reply |
+| Sentry | React then reply |
+
+Deployment bots (Vercel, Dependabot, Renovate) are automatically ignored.
 
 ## Prerequisites
 
-- [GitHub CLI](https://cli.github.com/) (`gh`) — authenticated
-- [jq](https://jqlang.github.io/jq/) 1.6+
-- GNU coreutils (macOS: `brew install coreutils`)
+- GitHub CLI (`gh`) — authenticated with your account
+- jq 1.6+
+- GNU coreutils — built-in on Linux, `brew install coreutils` on macOS
 
 ## Installation
 
@@ -32,24 +42,9 @@ Handle PR bot comments (CodeRabbit, Greptile, Copilot, Codex, Sentry) with batch
 /plugin install pr-patrol
 ```
 
-## Usage
+## State Tracking
 
-```bash
-/pr-patrol           # Auto-detect PR from branch
-/pr-patrol 123       # Specific PR number
-```
-
-## Workflow
-
-```
-Gate 0: Init      → Detect PR, load state
-Gate 1: Collect   → Fetch bot comments
-Gate 2: Validate  → Check which are real issues
-Gate 3: Fix       → Design and apply fixes
-Gate 4: Commit    → Create commit
-Gate 5: Reply     → Post replies to bots
-Gate 6: Push      → Push and check for new comments
-```
+Progress is saved to `.claude/bot-reviews/PR-{number}.md` so you can resume interrupted sessions.
 
 ## License
 

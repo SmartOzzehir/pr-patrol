@@ -1,13 +1,25 @@
 # Smart Plugins
 
-Production-ready plugins for Claude Code.
+Claude Code plugins for common development workflows.
 
-## Plugins
+## Available Plugins
 
-| Plugin | Description |
-|--------|-------------|
-| [pr-patrol](./pr-patrol) | Handle PR bot comments with batch validation and 7-gate workflow |
-| [spec-interview](./spec-interview) | Smart requirements interview with PRD generation |
+### pr-patrol
+
+Handles PR review bot comments (CodeRabbit, Greptile, Copilot, Codex, Sentry) through a structured 7-gate workflow. Validates comments, applies fixes, and posts replies automatically.
+
+```bash
+/pr-patrol 123    # Process PR #123
+```
+
+### spec-interview
+
+Conducts requirements interviews to generate PRD documents. Analyzes existing files, asks targeted questions, and validates against best practices.
+
+```bash
+/spec-interview "Add user export feature"
+/spec-interview docs/feature-spec.md
+```
 
 ## Installation
 

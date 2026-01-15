@@ -27,8 +27,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a monorepo containing Claude Code plugins. Each plugin is self-contained in its own directory with a `.claude-plugin/plugin.json` manifest.
 
 **Plugins:**
-- `pr-patrol/` (v1.4.1) — PR bot comment processor with 7-gate workflow
-- `spec-interview/` (v2.0.0) — Requirements interview for PRD generation
+- `pr-patrol/` (v1.0.0) — PR bot comment processor with 7-gate workflow
+- `spec-interview/` (v1.0.0) — Requirements interview for PRD generation
 
 ## Plugin Structure
 
@@ -67,7 +67,7 @@ plugin-name/
 
 **Supports 12 languages:** Auto-detected from user input.
 
-**Output:** 13-section PRD document.
+**Output:** 14-section PRD document.
 
 ## Testing Plugins Locally
 
