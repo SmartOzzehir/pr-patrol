@@ -8,6 +8,5 @@
   },
   "repository": "https://github.com/SmartOzzehir/smart-plugins",
   "license": "MIT",
-  "keywords": ["pr-review", "code-review", "github", "coderabbit", "greptile", "copilot"],
-  "hooks": "./hooks/hooks.json"
+  "keywords": ["pr-review", "code-review", "github", "coderabbit", "greptile", "copilot"]
 }
