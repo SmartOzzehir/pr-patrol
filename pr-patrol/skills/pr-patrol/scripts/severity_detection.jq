@@ -33,7 +33,7 @@ def detect_severity:
     elif ($body | test("🟡 Minor"; "i")) then "medium"
     elif ($body | test("💭 Nitpick"; "i")) then "low"
     else "medium" end
-  elif $bot == "sentry" or $bot == "sentry-io[bot]" then
+  elif $bot == "sentry" or $bot == "sentry[bot]" then
     if ($body | test("CRITICAL"; "")) then "critical"
     elif ($body | test("HIGH"; "")) then "high"
     elif ($body | test("MEDIUM"; "")) then "medium"

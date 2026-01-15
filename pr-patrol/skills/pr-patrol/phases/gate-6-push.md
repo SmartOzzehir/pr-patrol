@@ -69,8 +69,8 @@ git log origin/HEAD -1 --oneline
 SCRIPTS="${CLAUDE_PLUGIN_ROOT}/skills/pr-patrol/scripts"
 STATE_FILE=".claude/bot-reviews/PR-${PR}.md"
 
-# Update push timestamp
-"$SCRIPTS/update_state.sh" "$STATE_FILE" last_push_at "$(date -Iseconds)"
+# Update push timestamp (use "now" keyword for cross-platform compatibility)
+"$SCRIPTS/update_state.sh" "$STATE_FILE" last_push_at "now"
 
 # Update push commit SHA
 "$SCRIPTS/update_state.sh" "$STATE_FILE" last_push_commit "$(git rev-parse HEAD)"

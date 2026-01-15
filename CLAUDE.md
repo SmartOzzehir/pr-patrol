@@ -2,6 +2,26 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Git Safety Rules
+
+**NEVER perform these actions without explicit user permission:**
+
+- `git commit` — Always ask before committing
+- `git push` — Always ask before pushing
+- `git push --force` — NEVER do this
+- `gh pr create` — Always ask before creating PRs
+- `git reset --hard` — NEVER do this without permission
+- `git rebase` — Always ask before rebasing
+
+**Workflow:**
+1. Make changes as requested
+2. Show what changed (`git diff --stat`)
+3. **ASK** before committing
+4. **ASK** before pushing
+5. **ASK** before creating PR
+
+---
+
 ## Repository Overview
 
 This is a monorepo containing Claude Code plugins. Each plugin is self-contained in its own directory with a `.claude-plugin/plugin.json` manifest.

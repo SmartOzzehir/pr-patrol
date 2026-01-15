@@ -86,6 +86,9 @@ Embedded comment types:
 ```bash
 SCRIPTS="${CLAUDE_PLUGIN_ROOT}/skills/pr-patrol/scripts"
 
+# First, fetch issue comments separately (walkthrough lives here)
+gh api repos/$OWNER/$REPO/issues/$PR/comments --paginate > /tmp/issue_comments.json
+
 # Extract embedded comments from CodeRabbit walkthrough
 "$SCRIPTS/parse_coderabbit_embedded.sh" /tmp/issue_comments.json > /tmp/embedded_comments.json
 
@@ -329,14 +332,20 @@ Mark implemented issues in state file.
 **BLOCKING** - Must pass before proceeding!
 
 ```bash
-# Typecheck - MUST PASS
-pnpm typecheck || npm run typecheck
+# Typecheck - MUST PASS or exit
+(pnpm typecheck || npm run typecheck) || {
+  echo "Typecheck failed! Fix errors before proceeding."
+  exit 1
+}
 
-# Lint with auto-fix
-pnpm biome check --write src/ || pnpm lint --fix
+# Lint with auto-fix - MUST PASS or exit
+(pnpm biome check --write src/ || pnpm lint --fix) || {
+  echo "Lint failed! Fix errors before proceeding."
+  exit 1
+}
 ```
 
-If checks fail, fix the issues before continuing.
+If checks fail, the workflow will stop. Fix the issues and re-run.
 
 ### Step 3.6 — Gate 3.5: Quality Review (OPTIONAL)
 
@@ -431,17 +440,17 @@ GitHub has TWO comment systems with DIFFERENT reply methods!
 **For Issue Comments (no threading!):**
 ```bash
 # MUST use @mention since no thread support!
-gh api repos/{o}/{r}/issues/{pr}/comments \
+gh api repos/$OWNER/$REPO/issues/$PR/comments \
   -X POST \
-  -f body="@greptile-apps Fixed in commit {sha}. Thanks!"
+  -f body="@greptile-apps Fixed in commit $COMMIT_SHA. Thanks!"
 ```
 
 **For PR Review Comments:**
 ```bash
-gh api repos/{o}/{r}/pulls/{pr}/comments \
+gh api repos/$OWNER/$REPO/pulls/$PR/comments \
   -X POST \
-  -f body="Fixed in commit {sha}" \
-  -F in_reply_to={comment_id}
+  -f body="Fixed in commit $COMMIT_SHA" \
+  -F in_reply_to=$COMMENT_ID
 ```
 
 ### Step 4.3 — Send Replies
@@ -483,7 +492,7 @@ CYCLE=$(grep "^current_cycle:" "$STATE_FILE" | cut -d' ' -f2)
 
 # Generate and post summary
 "$SCRIPTS/build_greptile_summary.sh" "$STATE_FILE" "$CYCLE" > /tmp/greptile_summary.md
-gh api repos/{o}/{r}/issues/{pr}/comments -X POST -f body="$(cat /tmp/greptile_summary.md)"
+gh api repos/$OWNER/$REPO/issues/$PR/comments -X POST -f body="$(cat /tmp/greptile_summary.md)"
 ```
 
 ### Step 4.6 — Cycle Summary

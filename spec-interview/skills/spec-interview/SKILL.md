@@ -349,24 +349,18 @@ options:
 - **Partial:** What if only some data is available?
 - **Offline:** What if network is unavailable?
 
-### Visual Sketch Example:
+### Visual Sketch Approach:
 
-```
-Imagine this layout for a data table:
+When discussing UI layouts, describe components in plain text:
 
-┌─────────────────────────────────────────────────┐
-│ 🔍 Search...          [Filter ▾]  [+ Add New]   │
-├─────────────────────────────────────────────────┤
-│ ☐ │ Name          │ Status    │ Date    │ ...  │
-│───┼───────────────┼───────────┼─────────┼──────│
-│ ☐ │ Item 1        │ 🟢 Active │ 01/15   │ ⋮    │
-│ ☐ │ Item 2        │ 🟡 Pending│ 01/14   │ ⋮    │
-├─────────────────────────────────────────────────┤
-│ ◀ 1 2 3 ... 10 ▶           Showing 1-20 of 156 │
-└─────────────────────────────────────────────────┘
+> **Example data table description:**
+> - Header row with search input, filter dropdown, and "Add New" button
+> - Table columns: checkbox, Name, Status (with color indicators), Date, actions menu
+> - Pagination footer showing current range and total count
+>
+> Ask: "What's missing from this layout?"
 
-What's missing from this sketch?
-```
+This approach works better across different rendering contexts.
 
 ---
 
@@ -413,7 +407,7 @@ What's missing from this sketch?
 
 ```
 question: "What should happen if a user tries to edit something another user is currently editing?"
-header: "Concurrent Edit"
+header: "Concurrency"
 options:
   - label: "Lock while editing (Recommended)"
     description: "Only one person can edit at a time - simplest and prevents data loss"

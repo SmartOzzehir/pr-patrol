@@ -5,7 +5,7 @@
 # Examples:
 #   ./update_state.sh .claude/bot-reviews/PR-32.md status validated
 #   ./update_state.sh .claude/bot-reviews/PR-32.md current_cycle 3
-#   ./update_state.sh .claude/bot-reviews/PR-32.md last_updated "$(date -Iseconds)"
+#   ./update_state.sh .claude/bot-reviews/PR-32.md last_updated "now"  # auto-generates timestamp
 #   ./update_state.sh .claude/bot-reviews/PR-32.md replied_comment_ids "[123, 456, 789]"
 
 set -euo pipefail
@@ -24,6 +24,11 @@ fi
 STATE_FILE="${1:?Usage: $0 <state_file> <field> <value>}"
 FIELD="${2:?Usage: $0 <state_file> <field> <value>}"
 VALUE="${3:?Usage: $0 <state_file> <field> <value>}"
+
+# Support "now" keyword for timestamp fields - generates platform-aware ISO timestamp
+if [[ "$VALUE" == "now" ]]; then
+  VALUE=$($DATE_CMD -Iseconds)
+fi
 
 if [[ ! -f "$STATE_FILE" ]]; then
   echo "Error: State file not found: $STATE_FILE" >&2
