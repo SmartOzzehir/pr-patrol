@@ -153,10 +153,18 @@ SKILL_ROOT="${CLAUDE_PLUGIN_ROOT}/skills/pr-patrol"
 
 1. **EVERY gate requires AskUserQuestion** - Never skip user approval
 2. **ALL comments must be validated** - Severity only affects priority
-3. **Copilot gets NO response** - Silent fix only
+3. **Copilot gets NO response** - Silent fix only, no reactions, no replies
 4. **NEVER commit/push without approval** - Explicit consent required
 5. **NEVER force push** - Blocked completely
 6. **Typecheck/lint are MANDATORY** - Block on failure
+7. **ALWAYS use --paginate** - Default GitHub API returns only 30 comments
+8. **Fetch BOTH endpoints** - Review comments (`/pulls/{pr}/comments`) AND issue comments (`/issues/{pr}/comments`)
+9. **Extract embedded CodeRabbit comments** - Use `parse_coderabbit_embedded.sh` for nitpicks, duplicates, outside-diff
+10. **Issue vs PR review comments** - Different reply methods! Issue comments need @mention (no threading)
+11. **Reaction BEFORE reply** - For Greptile/Codex/Sentry, add reaction first, then reply
+12. **Short reply format** - "Fixed in commit {sha}: {description}" NOT verbose essays
+13. **Use helper scripts** - `${CLAUDE_PLUGIN_ROOT}/skills/pr-patrol/scripts/` has utilities
+14. **TRUST SCRIPT OUTPUT** - When scripts return data, DO NOT make verification queries
 
 ---
 
