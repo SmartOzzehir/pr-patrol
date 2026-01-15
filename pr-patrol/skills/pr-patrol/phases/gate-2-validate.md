@@ -13,6 +13,27 @@
 
 ---
 
+## IMPORTANT: Include Embedded Comments
+
+CodeRabbit embeds some comments in the walkthrough (issue comment) due to GitHub API limitations:
+
+| Section | Emoji | What It Contains |
+|---------|-------|------------------|
+| Duplicate comments | `♻️` | Issues from previous reviews that still apply |
+| Additional comments | `🔇` | Comments outside the diff range |
+| Nitpick comments | `🧹` | Minor style suggestions (sometimes embedded) |
+
+**These MUST be validated too!** Use the extracted embedded comments from Gate 1.
+
+If embedded comments were extracted to `/tmp/embedded_comments.json`, include them:
+
+```bash
+# Merge inline + embedded for validation
+jq -s '.[0].comments + .[1].comments' /tmp/all_comments.json /tmp/embedded_comments.json
+```
+
+---
+
 ## CRITICAL: Use Task Tool for Validation
 
 **DO NOT manually read files and validate comments.**

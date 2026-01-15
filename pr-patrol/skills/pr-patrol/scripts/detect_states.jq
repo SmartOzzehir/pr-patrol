@@ -11,17 +11,46 @@
 #   REJECTED - Bot response indicates rejection
 
 # RESOLVED markers - bot accepted the fix
+# Priority 1: HTML markers (definitive, machine-readable)
+# Priority 2: Textual patterns (fallback)
 def is_resolved:
   . and (
-    test("review_comment_addressed|LGTM|excellent|thank you|confirmed|addressed|working as designed|looks good|you.re (absolutely )?right"; "i") or
-    test("\\u2705")  # checkmark emoji
+    # CodeRabbit definitive HTML marker (highest confidence)
+    test("<!-- <review_comment_addressed> -->") or
+    # CodeRabbit textual patterns
+    test("LGTM|excellent|thank you|confirmed|addressed|working as designed|looks good|you.re (absolutely )?right"; "i") or
+    # Greptile acknowledgment patterns
+    test("thanks for (the )?(fix|update|change)|acknowledged|got it|understood"; "i") or
+    # Unicode checkmark emoji
+    test("\\u2705")
   );
 
 # REJECTED markers - bot rejected the fix
+# Bot indicates the issue is NOT resolved
 def is_rejected:
   . and (
-    test("cannot locate|could you confirm|still|not fixed|issue remains|I do not see|however.*still|but.*still"; "i") or
-    (test("\\?") and test("Could you|Can you|Would you|Have you"; "i"))
+    # CodeRabbit rejection patterns
+    test("cannot locate|could you confirm|I do not see"; "i") or
+    # Persistent issue patterns
+    test("(still|however|but).*(present|exists|remains|see|find|issue)"; "i") or
+    test("not (been )?(fixed|addressed|resolved)"; "i") or
+    test("issue (still )?(remains|persists)"; "i") or
+    # Greptile rejection patterns
+    test("issue remains|still see the problem|not quite right"; "i") or
+    # Question patterns (asking for clarification = not resolved)
+    (test("\\?$") and test("Could you|Can you|Would you|Have you|Did you"; "i"))
+  );
+
+# ACKNOWLEDGMENT markers - bot acknowledging our reply (not a new issue)
+# Used to filter out bot responses that are just "thanks" not new feedback
+def is_acknowledgment:
+  . and (
+    # Short acknowledgment phrases
+    test("^(thanks|thank you|got it|acknowledged|understood|okay|ok|👍)!?$"; "i") or
+    # Greptile typical ack: "Thanks for the fix!"
+    test("^thanks for (the )?(fix|update|change|feedback|clarification)"; "i") or
+    # Very short responses are likely acks
+    (length < 50 and test("thanks|good|great|perfect"; "i"))
   );
 
 # Build lookup maps for efficient access

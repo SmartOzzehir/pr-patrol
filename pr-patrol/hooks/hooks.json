@@ -1,56 +1,16 @@
 {
-  "description": "Enforces pr-patrol 7-gate workflow with mandatory checkpoints and correct bot protocols",
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "PR-PATROL GATE ENFORCEMENT: Check if a state file exists at .claude/bot-reviews/PR-*.md\n\nIF STATE FILE EXISTS (pr-patrol workflow is ACTIVE):\n1. VERIFY you read the current gate file from ${CLAUDE_PLUGIN_ROOT}/skills/pr-patrol/phases/gate-{N}.md based on state file 'status' field:\n   - No file/initialized → gate-0-init.md or gate-1-collect.md\n   - collected → gate-2-validate.md\n   - validated/fixes_planned/fixes_applied → gate-3-fix.md\n   - checks_passed → gate-4-commit.md\n   - committed → gate-5-reply.md\n   - replies_sent → gate-6-push.md\n\n2. VERIFY user approved this action via AskUserQuestion (MANDATORY at EVERY gate - never skip!)\n\n3. IF Gate 5 (replies): VERIFY you read bot-formats.md BEFORE posting any reply\n\nIF ANY VERIFICATION FAILS:\n- DENY this action\n- Instruct to read the required gate file first\n- Remind about mandatory AskUserQuestion\n\nIF NO STATE FILE EXISTS: ALLOW (not a pr-patrol workflow)"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "PR-PATROL BASH PROTOCOL CHECK: If command contains 'gh api' AND .claude/bot-reviews/PR-*.md exists:\n\n1. POSTING A REPLY? Verify:\n   a) TARGET BOT CHECK:\n      - Is target bot 'Copilot'? → DENY! Copilot = SILENT FIX ONLY, never reply!\n   \n   b) ENDPOINT CHECK:\n      - /issues/{pr}/comments endpoint? → Body MUST include @mention (e.g., @greptile-apps)\n      - /pulls/{pr}/comments endpoint? → MUST use -F in_reply_to={id} parameter\n   \n   c) FORMAT CHECK:\n      - Reply MUST be SHORT: 'Fixed in commit {sha}: {brief description}'\n      - Reply must NOT be verbose essay-style explanation\n      - Max 1-2 sentences!\n   \n   d) REACTION CHECK (Greptile/Codex/Sentry only):\n      - Reaction (+1 or -1) MUST be posted BEFORE the reply\n      - Use /pulls/comments/{id}/reactions endpoint first\n\n2. FETCHING COMMENTS? Verify:\n   - Prefer using scripts from ${CLAUDE_PLUGIN_ROOT}/skills/pr-patrol/scripts/:\n     - fetch_pr_comments.sh for fetching\n     - parse_coderabbit_embedded.sh for embedded comments\n     - detect_thread_states.sh for state detection\n   - If using raw gh api, MUST use --paginate flag\n\n3. ADDING REACTION? Verify:\n   - URL format is /pulls/comments/{id}/reactions (NO {pr} in path!)\n   - NOT /pulls/{pr}/comments/{id}/reactions (WRONG - returns 404)\n\nIF VIOLATIONS FOUND: DENY with specific correction instructions"
-          }
-        ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "PR-PATROL VALIDATION AGENT CHECK: If .claude/bot-reviews/PR-*.md exists AND status is 'collected':\n\n1. Comment validation MUST use 'bot-comment-validator' agent via Task tool\n2. DO NOT manually read files and validate comments yourself\n3. Launch multiple validators in PARALLEL for efficiency (single message, multiple Task calls)\n4. Group comments by file to reduce agent calls\n\nIF attempting manual validation instead of using bot-comment-validator agent:\n- DENY and instruct to use Task tool with subagent_type='bot-comment-validator'"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "PR-PATROL STATE FILE CHECK: If .claude/bot-reviews/PR-*.md exists (workflow active):\n\n1. Was this edit to the state file? If not, remind to update state file after significant actions\n2. Is the billboard section current? Check:\n   - status field matches current workflow stage\n   - next_gate field points to correct next phase\n   - next_action field describes what to do next\n3. Did you use update_billboard.sh or update_state.sh scripts?\n\nIF STATE FILE IS STALE: Warn and remind to update before proceeding to next gate"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "PR-PATROL COMPLETION CHECK: If pr-patrol workflow was active (.claude/bot-reviews/PR-*.md exists):\n\n1. Were ALL mandatory AskUserQuestion prompts shown for completed gates?\n   - Gate 0: Setup mode selection\n   - Gate 1: Proceed with collection?\n   - Gate 2: Validation results review\n   - Gate 3: Fix plan approval + commit approval\n   - Gate 5: Reply approval\n   - Gate 6: Push approval + cycle completion\n\n2. Is the state file updated with current status?\n\n3. Did you inform user of next action from billboard?\n\nIF WORKFLOW INCOMPLETE: Warn about incomplete state and what remains"
-          }
-        ]
-      }
-    ]
-  }
+  "hooks": [
+    {
+      "event": "PreToolUse",
+      "tools": ["Bash"],
+      "type": "command",
+      "command": ["bash", "${CLAUDE_PLUGIN_ROOT}/hooks/block-force-push.sh"]
+    },
+    {
+      "event": "PreToolUse",
+      "tools": ["Bash", "Write"],
+      "type": "command",
+      "command": ["bash", "${CLAUDE_PLUGIN_ROOT}/hooks/protect-state-file.sh"]
+    }
+  ]
 }

@@ -29,6 +29,33 @@ Before posting ANY reply, read `bot-formats.md` for bot-specific protocols.
 | Sentry | 👍/👎 FIRST | ✅ THEN Reply | Same as Greptile |
 | Copilot | ❌ NEVER | ❌ NEVER | **SILENT FIX ONLY** |
 
+### Why Reactions Matter (Greptile ML Training)
+
+Greptile uses **RLHF (Reinforcement Learning from Human Feedback)**:
+- 👍 = "This was a helpful comment" → More similar comments in future
+- 👎 = "This was not helpful/wrong" → Fewer similar comments in future
+
+**Learning period:** 2-3 weeks of consistent feedback improves Greptile accuracy from ~19% to ~55%+.
+
+### Greptile @mention Keywords (REQUIRED)
+
+Greptile parses `@greptile-apps` mentions with specific keywords:
+
+| Keyword | Meaning | When to Use |
+|---------|---------|-------------|
+| `@greptile-apps Fixed` | Issue was valid, fix applied | After fixing a real issue |
+| `@greptile-apps Not fixed` | False positive, no change made | When rejecting a suggestion |
+| `@greptile-apps Acknowledged` | Noted, will address later | For deferred items |
+
+**Example replies:**
+```
+@greptile-apps Fixed - added null check as suggested
+@greptile-apps Not fixed - this is intentional, we validate in middleware
+@greptile-apps Acknowledged - will refactor in follow-up PR
+```
+
+> **CRITICAL**: Always include `@greptile-apps` + keyword in replies. Without this, Greptile cannot learn from your feedback!
+
 ---
 
 ## CRITICAL: Issue Comments vs PR Review Comments
@@ -93,11 +120,13 @@ Fixed in commit {sha}: {description}
 # Step 1: Add reaction
 gh api repos/{o}/{r}/pulls/comments/{id}/reactions -X POST -f content="+1"
 
-# Step 2: Reply
+# Step 2: Reply WITH @mention (REQUIRED for ML training!)
 gh api repos/{o}/{r}/pulls/{pr}/comments -X POST \
-  -f body="Fixed in commit {sha}. Thanks for catching this!" \
+  -f body="@greptile-apps Fixed - {description}" \
   -F in_reply_to={id}
 ```
+
+> **CRITICAL**: The `@greptile-apps Fixed` prefix is required! Greptile's ML parses this to understand the fix was applied. Without it, the feedback loop is incomplete.
 
 **For Issue Comments (with @mention):**
 ```bash
@@ -117,11 +146,13 @@ This is intentional: {reasoning}
 # Step 1: Add thumbs DOWN reaction
 gh api repos/{o}/{r}/pulls/comments/{id}/reactions -X POST -f content="-1"
 
-# Step 2: Reply explaining
+# Step 2: Reply WITH @mention (REQUIRED for ML training!)
 gh api repos/{o}/{r}/pulls/{pr}/comments -X POST \
-  -f body="This is intentional - {reasoning}" \
+  -f body="@greptile-apps Not fixed - {reasoning}" \
   -F in_reply_to={id}
 ```
+
+> **CRITICAL**: The `@greptile-apps Not fixed` prefix tells Greptile this was a false positive. Combined with 👎 reaction, this trains the model to reduce similar suggestions.
 
 ---
 
@@ -153,9 +184,11 @@ When you @mention Greptile with a fix confirmation:
 
 ---
 
-## Greptile Consolidated Summary Comment
+## Greptile Consolidated Summary Comment (MANDATORY)
 
-**IMPORTANT:** At the end of each cycle, post ONE consolidated summary comment with `@greptile-apps` mention.
+> ⚠️ **NON-NEGOTIABLE**: At the end of EVERY cycle, you MUST post ONE consolidated summary comment with `@greptile-apps` mention. This is the PRIMARY feedback mechanism for Greptile's ML training.
+
+Individual thread replies are optional, but this summary is **REQUIRED**.
 
 This helps Greptile:
 - Learn from batch feedback (improves future reviews)

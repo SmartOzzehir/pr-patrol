@@ -73,11 +73,37 @@ fi
 } | jq -s -L "$SCRIPT_DIR" --arg since "$SINCE" '
 include "bot-detection";
 
+# Detection functions for categorization
+def is_resolved_response:
+  . and (
+    test("<!-- <review_comment_addressed> -->") or
+    test("LGTM|excellent|thank you|confirmed|addressed|working as designed|looks good"; "i") or
+    test("thanks for (the )?(fix|update|change)|acknowledged|got it"; "i") or
+    test("\\u2705")
+  );
+
+def is_rejected_response:
+  . and (
+    test("cannot locate|could you confirm|I do not see"; "i") or
+    test("(still|however|but).*(present|exists|remains|see|find|issue)"; "i") or
+    test("not (been )?(fixed|addressed|resolved)"; "i") or
+    test("issue (still )?(remains|persists)"; "i") or
+    (test("\\?$") and test("Could you|Can you|Would you|Have you|Did you"; "i"))
+  );
+
+def is_acknowledgment:
+  . and (
+    test("^(thanks|thank you|got it|acknowledged|understood|okay|ok)!?$"; "i") or
+    test("^thanks for (the )?(fix|update|change|feedback)"; "i") or
+    (length < 50 and test("thanks|good|great|perfect"; "i"))
+  );
+
 add |
+
+# Get all comments with metadata
 [.[] |
   select(.user.login | is_ignored_bot | not) |
   select(.user.type == "Bot" or (.user.login | is_review_bot)) |
-  select(.in_reply_to_id == null) |
   select(.created_at > $since) |
   {
     id,
@@ -85,16 +111,52 @@ add |
     path: (.path // "issue-level"),
     line,
     created_at,
+    in_reply_to_id,
+    body: (.body | gsub("[\\u0000-\\u001f]"; "")),
     body_preview: (.body | gsub("[\\u0000-\\u001f]"; "") | .[0:150])
   }
 ] |
+
+# Categorize comments
+. as $all |
 {
   since: $since,
-  new_comments: .,
-  count: length,
-  by_bot: (group_by(.bot) | map({bot: .[0].bot, count: length})),
-  needs_review: (length > 0),
-  copilot_count: ([.[] | select(.bot == "Copilot")] | length),
-  actionable_count: ([.[] | select(.bot != "Copilot")] | length)
+  
+  # New bot issues (not replies, need attention)
+  new_issues: [$all[] | select(.in_reply_to_id == null) | select(.bot != "Copilot") | del(.body)],
+  
+  # Bot responses to our replies that RESOLVED the issue
+  resolved: [$all[] | select(.in_reply_to_id) | select(.body | is_resolved_response) | del(.body)],
+  
+  # Bot responses that REJECTED our fix
+  rejected: [$all[] | select(.in_reply_to_id) | select(.body | is_rejected_response) | del(.body)],
+  
+  # Simple acknowledgments (skip these)
+  acknowledgments: [$all[] | select(.in_reply_to_id) | select(.body | is_acknowledgment) | del(.body)],
+  
+  # Copilot comments (silent fix, no action needed)
+  copilot: [$all[] | select(.bot == "Copilot") | select(.in_reply_to_id == null) | del(.body)],
+  
+  # Summary counts
+  summary: {
+    total: ($all | length),
+    new_issues: ([$all[] | select(.in_reply_to_id == null) | select(.bot != "Copilot")] | length),
+    resolved: ([$all[] | select(.in_reply_to_id) | select(.body | is_resolved_response)] | length),
+    rejected: ([$all[] | select(.in_reply_to_id) | select(.body | is_rejected_response)] | length),
+    acknowledgments: ([$all[] | select(.in_reply_to_id) | select(.body | is_acknowledgment)] | length),
+    copilot: ([$all[] | select(.bot == "Copilot") | select(.in_reply_to_id == null)] | length)
+  },
+  
+  by_bot: ($all | group_by(.bot) | map({bot: .[0].bot, count: length})),
+  
+  # Decision flags
+  needs_review: (([$all[] | select(.in_reply_to_id == null) | select(.bot != "Copilot")] | length) > 0),
+  has_rejections: (([$all[] | select(.in_reply_to_id) | select(.body | is_rejected_response)] | length) > 0),
+  
+  # Actionable = new_issues + rejections (need work)
+  actionable_count: (
+    ([$all[] | select(.in_reply_to_id == null) | select(.bot != "Copilot")] | length) +
+    ([$all[] | select(.in_reply_to_id) | select(.body | is_rejected_response)] | length)
+  )
 }
 '

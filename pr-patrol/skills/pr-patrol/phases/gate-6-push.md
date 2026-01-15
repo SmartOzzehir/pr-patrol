@@ -159,23 +159,42 @@ LAST_PUSH=$(grep "^last_push_at:" "$STATE" | cut -d' ' -f2)
 
 ---
 
-## Script Output Format
+## Script Output Format (Enhanced)
+
+The `check_new_comments.sh` script now categorizes bot responses:
 
 ```json
 {
   "since": "2026-01-13T10:18:56Z",
-  "count": 3,
+  "summary": {
+    "total": 5,
+    "new_issues": 2,       // New bot comments requiring action
+    "resolved": 2,         // Bot accepted our fix (good!)
+    "rejected": 1,         // Bot rejected our fix (re-fix needed!)
+    "acknowledgments": 0,  // Bot said "thanks" (skip)
+    "copilot": 0           // Copilot comments (silent fix)
+  },
+  "new_issues": [...],     // Need validation + fix
+  "resolved": [...],       // Just log, no action
+  "rejected": [...],       // Need re-fix!
+  "acknowledgments": [...], // Skip these
+  "copilot": [...],        // Silent fix only
+  "by_bot": [...],
   "needs_review": true,
-  "by_bot": [
-    {"bot": "greptile-apps[bot]", "count": 2},
-    {"bot": "coderabbitai[bot]", "count": 1}
-  ],
-  "new_comments": [
-    {"id": 123, "bot": "coderabbitai[bot]", "path": "src/file.ts", "body_preview": "..."},
-    ...
-  ]
+  "has_rejections": true,  // Important flag!
+  "actionable_count": 3    // new_issues + rejected
 }
 ```
+
+### Category Meanings
+
+| Category | What It Means | Action |
+|----------|---------------|--------|
+| `new_issues` | New bot comment (not a reply) | Validate → Fix |
+| `resolved` | Bot says "thanks", "LGTM", has `<!-- review_comment_addressed -->` | Log only |
+| `rejected` | Bot says "still see issue", "not fixed" | Re-fix! |
+| `acknowledgments` | Short "thanks" reply from bot | Skip |
+| `copilot` | Copilot comment | Silent fix |
 
 ---
 
