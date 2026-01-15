@@ -33,7 +33,7 @@ This is a monorepo containing Claude Code plugins. Each plugin is self-contained
 ## Plugin Structure
 
 Each plugin follows this structure:
-```
+```text
 plugin-name/
 ├── .claude-plugin/plugin.json   # Required manifest
 ├── commands/                    # Slash commands (*.md)

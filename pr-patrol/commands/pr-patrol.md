@@ -86,8 +86,9 @@ Embedded comment types:
 ```bash
 SCRIPTS="${CLAUDE_PLUGIN_ROOT}/skills/pr-patrol/scripts"
 
-# First, fetch issue comments separately (walkthrough lives here)
-gh api repos/$OWNER/$REPO/issues/$PR/comments --paginate > /tmp/issue_comments.json
+# Extract issue comments from already-fetched data (avoids redundant API call)
+# Reshape to raw GitHub API format expected by parse_coderabbit_embedded.sh
+jq '[.bot_comments[], .user_replies[], .bot_responses[] | select(.type == "issue") | {id, user: {login: .bot}, body}]' /tmp/pr_comments.json > /tmp/issue_comments.json
 
 # Extract embedded comments from CodeRabbit walkthrough
 "$SCRIPTS/parse_coderabbit_embedded.sh" /tmp/issue_comments.json > /tmp/embedded_comments.json
