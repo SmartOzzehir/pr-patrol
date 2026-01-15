@@ -1,22 +1,27 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "smart-plugins",
-  "description": "Smart Plugins - A collection of Claude Code plugins for enhanced development workflows",
+  "description": "Production-ready plugins for Claude Code",
   "owner": {
-    "name": "SmartOzzehir"
+    "name": "SmartOzzehir",
+    "email": "smartozzehir@users.noreply.github.com"
   },
   "plugins": [
     {
       "name": "pr-patrol",
       "description": "Handle PR bot comments with batch validation and 7-gate workflow",
       "version": "1.4.1",
-      "source": "./pr-patrol"
+      "source": "./pr-patrol",
+      "category": "development",
+      "homepage": "https://github.com/SmartOzzehir/smart-plugins/tree/main/pr-patrol"
     },
     {
       "name": "spec-interview",
-      "description": "Comprehensive 8-stage requirements interview with adaptive technical depth and PRD generation",
+      "description": "8-stage requirements interview with PRD generation",
       "version": "2.0.0",
-      "source": "./spec-interview"
+      "source": "./spec-interview",
+      "category": "productivity",
+      "homepage": "https://github.com/SmartOzzehir/smart-plugins/tree/main/spec-interview"
     }
   ]
 }

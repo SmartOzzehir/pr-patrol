@@ -11,6 +11,17 @@
 
 set -euo pipefail
 
+# Platform detection - need GNU date for -d flag
+if date --version &>/dev/null; then
+  DATE_CMD="date"
+elif command -v gdate &>/dev/null; then
+  DATE_CMD="gdate"
+else
+  echo "ERROR: GNU date required. On macOS: brew install coreutils" >&2
+  echo "Windows users: Use WSL" >&2
+  exit 1
+fi
+
 OWNER="${1:?Usage: $0 <owner> <repo> <pr> [since_timestamp]}"
 REPO="${2:?Usage: $0 <owner> <repo> <pr> [since_timestamp]}"
 PR="${3:?Usage: $0 <owner> <repo> <pr> [since_timestamp]}"
@@ -32,7 +43,7 @@ fi
 # But local timestamps may have timezone offset (+03:00)
 # String comparison fails: "11:30Z" vs "14:22+03:00" → 11 < 14 (WRONG!)
 DATE_STDERR=$(mktemp)
-if SINCE_NORMALIZED=$(date -u -d "$SINCE" +"%Y-%m-%dT%H:%M:%SZ" 2>"$DATE_STDERR"); then
+if SINCE_NORMALIZED=$($DATE_CMD -u -d "$SINCE" +"%Y-%m-%dT%H:%M:%SZ" 2>"$DATE_STDERR"); then
   SINCE="$SINCE_NORMALIZED"
 else
   echo "Warning: Could not normalize timestamp '$SINCE' ($(cat "$DATE_STDERR")), using as-is" >&2

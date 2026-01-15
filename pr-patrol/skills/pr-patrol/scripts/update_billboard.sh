@@ -10,6 +10,17 @@
 
 set -euo pipefail
 
+# Platform detection - need GNU date for -Iseconds flag
+if date --version &>/dev/null; then
+  DATE_CMD="date"
+elif command -v gdate &>/dev/null; then
+  DATE_CMD="gdate"
+else
+  echo "ERROR: GNU date required. On macOS: brew install coreutils" >&2
+  echo "Windows users: Use WSL" >&2
+  exit 1
+fi
+
 STATE_FILE="${1:?Usage: $0 <state_file> <status> <next_gate> <next_action>}"
 STATUS="${2:?Missing status}"
 NEXT_GATE="${3:?Missing next_gate}"
@@ -27,7 +38,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 "$SCRIPT_DIR/update_state.sh" "$STATE_FILE" status "$STATUS"
 "$SCRIPT_DIR/update_state.sh" "$STATE_FILE" next_gate "$NEXT_GATE"
 "$SCRIPT_DIR/update_state.sh" "$STATE_FILE" next_action "$NEXT_ACTION"
-"$SCRIPT_DIR/update_state.sh" "$STATE_FILE" last_updated "$(date -Iseconds)"
+"$SCRIPT_DIR/update_state.sh" "$STATE_FILE" last_updated "$($DATE_CMD -Iseconds)"
 
 # Determine gate file name
 case "$NEXT_GATE" in
