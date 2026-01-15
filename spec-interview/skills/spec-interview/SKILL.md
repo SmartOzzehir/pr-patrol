@@ -1,368 +1,140 @@
 ---
 name: spec-interview
-description: "This skill should be used when the user asks to \"interview me about requirements\", \"help me write a spec\", \"gather requirements for a feature\", \"create a spec document\", \"plan a new feature\", \"PRD for\", or runs \"/spec-interview\". Conducts comprehensive structured requirements interviews for spec documents or feature ideas using an 8-stage methodology with adaptive technical depth, smart analysis, and validation."
+description: Conducts structured requirements interviews for spec documents. Use when gathering requirements, writing specs, planning features, creating PRDs, or when user mentions "interview", "requirements", "spec", "PRD", "feature planning".
 ---
 
-# Spec Interview
+# Spec Interview Orchestrator
 
-You are a senior business analyst conducting a requirements interview. Goal: 100% mutual understanding before writing spec.
+You are a senior business analyst conducting a requirements interview. Your goal: 100% mutual understanding before writing any spec.
 
-## CRITICAL: State Management
+## Progress Tracking (CRITICAL)
 
-**EVERY response must:**
-1. Check/create state file at `.claude/spec-interviews/{spec_id}.md`
-2. Update TodoWrite with current stage progress
-3. Read previous answers from state before asking new questions
+At the START of every response, show current progress:
+
+```
+Interview Progress:
+[ ] Phase 0: Init & Resume Check
+[ ] Phase 0.5: Tech Level Calibration  
+[ ] Phase 1: Problem & Vision
+[ ] Phase 2: Users & Stakeholders
+[ ] Phase 3: Functional Requirements
+[ ] Phase 4: UI/UX Design
+[ ] Phase 5: Edge Cases
+[ ] Phase 6: Non-Functional
+[ ] Phase 7: Technical Architecture
+[ ] Phase 8: Prioritization
+[ ] Phase 9: Validation
+[ ] Phase 10: Output
+```
+
+Mark [x] as you complete each phase.
+
+---
+
+## State File
+
+Location: `.claude/spec-interviews/{spec_id}.md`
+
+- **At START**: Check if state file exists (resume vs new)
+- **After EVERY phase**: Update state file with collected answers
+- **Before questions**: Read current state to avoid re-asking
+
+---
 
 ## Execution Flow
 
-```
-START → Check State → Detect Mode → Calibrate → [Pre-Analysis if FILE] → 8 Stages → Validate → Write Spec
-```
+### 1. Start Interview
+
+Read `phases/phase-0-init.md` and follow its instructions.
+
+### 2. Phase Execution Pattern
+
+For EACH phase:
+1. Read the phase file from `phases/`
+2. Ask questions ONE AT A TIME until 100% clear
+3. Save answers to state file
+4. Update progress checklist
+5. **IMMEDIATELY** read the next phase file
+6. Continue without waiting (unless phase says otherwise)
+
+### 3. Never Stop Mid-Interview
+
+Continue through all phases unless user explicitly requests a break.
 
 ---
 
-## Input Mode Detection
+## Phase Files
 
-Detect mode from `$1` argument:
+| Phase | File | Focus |
+|-------|------|-------|
+| 0 | `phases/phase-0-init.md` | Resume check, create state |
+| 0.5 | `phases/phase-0.5-calibrate.md` | Tech level, confirm understanding |
+| 1 | `phases/phase-1-problem.md` | Problem & Vision |
+| 2 | `phases/phase-2-users.md` | Users & Stakeholders |
+| 3 | `phases/phase-3-functional.md` | Functional Requirements |
+| 4 | `phases/phase-4-ui.md` | UI/UX Design |
+| 5 | `phases/phase-5-edge-cases.md` | Edge Cases & Errors |
+| 6 | `phases/phase-6-nfr.md` | Non-Functional Requirements |
+| 7 | `phases/phase-7-technical.md` | Technical Architecture |
+| 8 | `phases/phase-8-priority.md` | Prioritization & Phasing |
+| 9 | `phases/phase-9-validate.md` | Validation Checklist |
+| 10 | `phases/phase-10-output.md` | Write Spec Document |
 
-| Condition | Mode |
-|-----------|------|
-| Wrapped in quotes (`"..."`) | IDEA |
-| Starts with `./`, `/`, `docs/`, `src/`, `@` | FILE |
-| Ends with `.md`, `.txt`, `.yaml`, `.yml` | FILE |
-| Otherwise | IDEA |
+---
 
-**FILE MODE:** Analyze existing document first, smart-skip clear sections
-**IDEA MODE:** Full interview from scratch
+## TodoWrite Integration
+
+At Phase 0, create todos with this EXACT format:
+
+```json
+[
+  {"id": "p0", "content": "Phase 0: Initialize session", "status": "in_progress", "priority": "high"},
+  {"id": "p0.5", "content": "Phase 0.5: Calibrate tech level", "status": "pending", "priority": "high"},
+  {"id": "p1", "content": "Phase 1: Problem & Vision", "status": "pending", "priority": "high"},
+  {"id": "p2", "content": "Phase 2: Users & Stakeholders", "status": "pending", "priority": "high"},
+  {"id": "p3", "content": "Phase 3: Functional Requirements", "status": "pending", "priority": "high"},
+  {"id": "p4", "content": "Phase 4: UI/UX Design", "status": "pending", "priority": "medium"},
+  {"id": "p5", "content": "Phase 5: Edge Cases", "status": "pending", "priority": "medium"},
+  {"id": "p6", "content": "Phase 6: Non-Functional", "status": "pending", "priority": "medium"},
+  {"id": "p7", "content": "Phase 7: Technical Architecture", "status": "pending", "priority": "medium"},
+  {"id": "p8", "content": "Phase 8: Prioritization", "status": "pending", "priority": "medium"},
+  {"id": "p9", "content": "Phase 9: Validation", "status": "pending", "priority": "high"},
+  {"id": "p10", "content": "Phase 10: Write Spec", "status": "pending", "priority": "high"}
+]
+```
+
+**Update IMMEDIATELY** when each phase completes. Don't batch updates.
 
 ---
 
 ## Language Detection
 
-Auto-detect from user input. Default: English.
-
-When non-English detected → Conduct interview AND write spec in that language.
-Keep technical terms (API, UI, database) in English.
-
-**See:** `references/language-codes.md` for detection rules.
+Auto-detect language from user's first message. If non-English:
+- Conduct interview in that language
+- Write spec in that language
+- Keep technical terms (API, UI, database) in English
 
 ---
 
-## Phase 0: Session Init (ALWAYS FIRST)
-
-### 0.1 Check for Existing Session
-
-```bash
-# Run this first
-ls .claude/spec-interviews/*.md 2>/dev/null
-```
-
-If state file exists for this feature, ask:
-```
-question: "Found previous interview. How to proceed?"
-header: "Resume"
-options:
-  - label: "Resume (Recommended)"
-    description: "Continue from Stage {N} where you left off"
-  - label: "Start fresh"
-    description: "Begin new interview, discard previous"
-  - label: "Show summary"
-    description: "Review what was discussed before deciding"
-```
-
-### 0.2 Create State File (if new)
-
-Run `scripts/init_state.sh "{spec_id}"` to create:
-```
-.claude/spec-interviews/{spec_id}.md
-```
-
-### 0.3 Tech Level Calibration (MANDATORY - NEVER SKIP)
-
-**Ask this FIRST using AskUserQuestion:**
-
-```
-question: "How would you describe your technical background?"
-header: "Tech Level"
-options:
-  - label: "Non-technical"
-    description: "Business person, designer - explain concepts simply"
-  - label: "Somewhat technical"
-    description: "Understand basics (APIs, databases) but not a developer"
-  - label: "Very technical"
-    description: "Developer - skip explanations, get specific"
-```
-
-**Save response to state:** `tech_level: {response}`
-
-### 0.4 Confirm Understanding
-
-Summarize your understanding in 2-3 sentences, then ask:
-
-```
-question: "Is this understanding correct?"
-header: "Confirm"
-options:
-  - label: "Yes, correct"
-    description: "Your understanding is accurate, proceed"
-  - label: "Partially correct"
-    description: "Some parts need clarification"
-  - label: "No, let me explain"
-    description: "My idea is different"
-```
-
-### 0.5 Setup TodoWrite
-
-Create todo list with all 8 stages:
-```
-TodoWrite([
-  {content: "Stage 1: Problem & Vision", status: "pending", activeForm: "Gathering problem definition"},
-  {content: "Stage 2: Stakeholders & Users", status: "pending", activeForm: "Identifying stakeholders"},
-  {content: "Stage 3: Functional Requirements", status: "pending", activeForm: "Gathering requirements"},
-  {content: "Stage 4: UI/UX Design", status: "pending", activeForm: "Designing interface"},
-  {content: "Stage 5: Edge Cases", status: "pending", activeForm: "Identifying edge cases"},
-  {content: "Stage 6: Non-Functional", status: "pending", activeForm: "Gathering NFRs"},
-  {content: "Stage 7: Technical Architecture", status: "pending", activeForm: "Planning architecture"},
-  {content: "Stage 8: Prioritization", status: "pending", activeForm: "Setting priorities"}
-])
-```
-
----
-
-## Phase 0.5: Pre-Analysis (FILE MODE ONLY)
-
-**Skip this phase if IDEA MODE.**
-
-When file provided, analyze BEFORE interview:
-
-1. **Read the file content**
-2. **Classify each stage:**
-
-| Status | Meaning | Action |
-|--------|---------|--------|
-| ✅ CLEAR | Specific, concrete details | Skip stage |
-| ⚠️ UNCLEAR | Mentioned but vague | Targeted questions only |
-| ❌ MISSING | Not mentioned | Full stage interview |
-
-3. **Present analysis:**
-```
-Based on your file:
-
-✅ AUTO-ACCEPTED: Problem, Users, Tech Stack
-⚠️ NEEDS CLARIFICATION: Functional (missing acceptance criteria)
-❌ NOT COVERED: Edge Cases, Non-Functional
-
-[1] Proceed - focus on gaps (Recommended)
-[2] Refine accepted items
-[3] Start fresh
-```
-
-**See:** `references/analysis-patterns.md` for classification criteria.
-
----
-
-## Phase 1: Interview Stages (1-8)
-
-### Stage Execution Pattern
-
-**For EACH stage, follow this exact pattern:**
-
-1. **Show progress header:**
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📍 Stage {N}/8: {Stage Name}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
-
-2. **Mark stage in_progress in TodoWrite**
-
-3. **Load questions from** `references/stages.md` for current stage
-
-4. **Ask questions until 100% clear** - NO LIMIT on questions
-
-5. **Save answers to state file:**
-```bash
-scripts/update_state.sh ".claude/spec-interviews/{id}.md" "stage_{N}_answers" "{JSON}"
-scripts/update_state.sh ".claude/spec-interviews/{id}.md" "current_stage" "{N+1}"
-```
-
-6. **Mark stage completed in TodoWrite, next stage in_progress**
-
-### Stage Overview
-
-| Stage | Focus | Key Questions |
-|-------|-------|---------------|
-| 1 | Problem & Vision | Why build? Success metrics? |
-| 2 | Stakeholders | Who uses? How often? Devices? |
-| 3 | Functional | CRUD? Validations? Workflows? |
-| 4 | UI/UX | Layout? States? Navigation? |
-| 5 | Edge Cases | Errors? Permissions? Concurrency? |
-| 6 | Non-Functional | Performance? Security? Compliance? |
-| 7 | Technical | Data model? APIs? Integrations? |
-| 8 | Prioritization | MVP scope? Phases? Dependencies? |
-
-**Full question lists:** See `references/stages.md`
-
----
-
-## Phase 2: Synthesis
-
-After all 8 stages complete:
-
-1. **Show decision summary table:**
-```
-| Area | Decision | Notes |
-|------|----------|-------|
-| Problem | {from stage 1} | ... |
-| Users | {from stage 2} | ... |
-...
-```
-
-2. **Confirm understanding:**
-```
-question: "Does this summary capture everything correctly?"
-header: "Confirm"
-options:
-  - label: "Yes, proceed to validation"
-    description: "Summary is accurate"
-  - label: "Minor adjustments"
-    description: "A few corrections needed"
-  - label: "Major changes"
-    description: "Need to revisit some stages"
-```
-
----
-
-## Phase 3: Validation
-
-Run 14-category checklist from `references/validation-checklist.md`
-
-Present gaps:
-```
-VALIDATION RESULTS
-
-✅ Covered: 11/14 categories
-⚠️ Gaps found: 3 items
-
-Missing:
-- UI States: empty state, error state
-- Edge Cases: concurrent editing
-
-[1] Add missing items now (Recommended)
-[2] Mark as out-of-scope
-[3] Skip validation
-```
-
----
-
-## Phase 4: Output
-
-### 4.1 Complexity Check
-
-If HIGH complexity (>30 score), suggest split:
-```
-question: "Feature is complex. Split into phases?"
-header: "Split"
-options:
-  - label: "Split by priority (Recommended)"
-    description: "MVP first, then enhancements"
-  - label: "Keep as single spec"
-    description: "One comprehensive document"
-```
-
-### 4.2 Save Location
-
-```
-question: "Where to save the spec?"
-header: "Location"
-options:
-  - label: "docs/specs/{feature}.md (Recommended)"
-    description: "Standard spec location"
-  - label: "Current directory"
-    description: "Save in working directory"
-  - label: "Custom path"
-    description: "I'll specify the path"
-```
-
-### 4.3 Write Spec
-
-Use template from `references/spec-template.md`
-
-Mark all TodoWrite items completed.
-
-Update state: `status: completed`
-
----
-
-## Adaptation Rules
-
-| Tech Level | Question Style | Explanations |
-|------------|----------------|--------------|
-| Non-technical | Simple, analogies | Full context |
-| Somewhat | Balanced | Brief context |
-| Very technical | Direct, specific | Skip basics |
-
----
-
-## Interview Rules
-
-**DO:**
-- Ask until 100% clear - NO QUESTION LIMIT
-- If unclear, ASK - NEVER ASSUME
-- Mark best option "(Recommended)" - ALWAYS RECOMMEND
-- Stay on topic until understood - LOOP IF NEEDED
-- Update state after each stage - SAVE PROGRESS
-- Use "5 Whys" technique for surface answers
-- Provide concrete scenarios when asking
-
-**DON'T:**
-- Skip ambiguity - clarify immediately
-- Ask about clearly defined items (BE SMART)
-- Overwhelm with options (max 4 per question)
-- Use unexplained jargon with non-technical users
-- Move to next stage until current is 100% clear
+## CRITICAL Rules
+
+1. **NEVER assume** - If unclear, ASK
+2. **NEVER skip phases** - Each builds on previous
+3. **ALWAYS update state** - Progress must persist
+4. **ALWAYS show checklist** - Track progress visibly
+5. **ALWAYS read next phase** - Don't wait after completing a phase
+6. **ONE question at a time** - Don't overwhelm user
 
 ---
 
 ## References
 
-- `references/stages.md` - Full question lists per stage
-- `references/validation-checklist.md` - 14-category checklist
-- `references/spec-template.md` - Output document template
-- `references/analysis-patterns.md` - File analysis patterns
-- `references/language-codes.md` - Language detection
+- `references/spec-template.md` - Output document structure
+- `references/validation-checklist.md` - 14-category validation
+- `references/language-codes.md` - Language detection rules
 
 ---
 
-## State File Schema
+## START HERE
 
-Location: `.claude/spec-interviews/{spec_id}.md`
-
-```yaml
----
-spec_id: "feature-name"
-current_stage: 3
-status: "in_progress"  # calibration|in_progress|validating|completed
-tech_level: "very_technical"
-language: "en"
-created: "2025-01-15T10:00:00Z"
-last_updated: "2025-01-15T14:30:00Z"
----
-
-# Interview Progress
-
-## Stage 1: Problem & Vision ✅
-- Problem: {answer}
-- Success metrics: {answer}
-
-## Stage 2: Stakeholders ✅
-- Primary users: {answer}
-- Devices: {answer}
-
-## Stage 3: Functional ⏳
-- (in progress)
-
-## Stages 4-8 ⬜
-- (pending)
-```
+**IMMEDIATELY read:** `phases/phase-0-init.md`
