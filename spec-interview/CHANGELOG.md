@@ -5,6 +5,29 @@ All notable changes to the spec-interview plugin will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-01-15
+
+### Added
+- **Smart Skipping** - Automatically skips clearly defined sections, focuses interview on gaps
+- **Pre-Interview Analysis** - Classifies each stage as CLEAR/UNCLEAR/MISSING before asking questions
+- **Context Awareness** - Scans project for tech stack, similar specs, and patterns to avoid redundant questions
+- **Complexity Analysis** - Calculates complexity score and warns if scope too large (score > 30)
+- **Split Recommendations** - Suggests phasing options (by priority or component) for high-complexity features
+- **Enhanced Validation Phase** - 14-category best practices checklist after interview completion
+- **Output Options** - User chooses save location with intelligent recommendations
+- New reference files:
+  - `references/validation-checklist.md` (219 lines, 14 categories with severity levels)
+  - `references/analysis-patterns.md` (306 lines, classification criteria and complexity scoring)
+
+### Changed
+- Execution flow now includes 10 steps (was 7)
+- Spec template expanded to 14 sections (added Assumptions & Constraints)
+- Interview stages can be skipped if file analysis shows CLEAR status
+- Synthesis phase now leads to Validation phase before writing
+
+### Removed
+- `allowed-tools` field from skill frontmatter (was deprecated in v2.0.0)
+
 ## [2.0.0] - 2026-01-14
 
 ### Added

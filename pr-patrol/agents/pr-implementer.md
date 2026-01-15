@@ -12,7 +12,7 @@ description: |
   </commentary>
   </example>
 
-tools: ["Read", "Edit", "Write", "Grep", "Glob"]
+allowed-tools: ["Read", "Edit", "Write", "Grep", "Glob"]
 model: opus
 color: green
 ---

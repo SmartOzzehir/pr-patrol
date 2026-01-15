@@ -1,7 +1,6 @@
 ---
 name: spec-interview
 description: "This skill should be used when the user asks to \"interview me about requirements\", \"help me write a spec\", \"gather requirements for a feature\", \"create a spec document\", \"plan a new feature\", \"PRD for\", or runs \"/spec-interview\". Conducts comprehensive structured requirements interviews for spec documents or feature ideas using an 8-stage methodology with adaptive technical depth, smart analysis, and validation."
-allowed-tools: Read, Write, Edit, AskUserQuestion, Glob, Grep, Bash
 ---
 
 # Spec Interview v3.0
